@@ -188,7 +188,7 @@ def geomentry(I0, *data):
 if __name__ == "__main__":
     g = 1.4
     M = 4.96
-    theta = 30.0*pi/180.0
+    theta = 32.0*pi/180.0
     R = 8314.4621/28.9647
     H_ = 1.0
     w = 0.77
@@ -206,10 +206,13 @@ if __name__ == "__main__":
     ar1 = A(M0, beta1, g)
     rr1 = H(M0, beta1, g)
 
+    print ('Solved the incident shock parameters')
     data = (M0, p0, r0, a0, theta, g)
 
     I0 = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
     zthreeshock = fsolve(threeshock, I0, args=data)
+
+    print ('Solved the three shock theory close to triple point')
 
     M2 = zthreeshock[0]
     M3 = zthreeshock[6]
@@ -242,9 +245,12 @@ if __name__ == "__main__":
     a3 = ar3*a0
     
     data = (M1, theta1, p1, M2, p2, theta3, g)
-    I0 = [1.2*M2, 0.8*M2, M2, pi/8, pi/4, pi/8, 0.7*p1, 1.2*p1, p1]
+    # I0 = [1.2*M2, 0.8*M2, M2, pi/8, pi/4, pi/8, 0.7*p1, 1.2*p1, p1]
+    I0 = [M2, M2, M2, pi/8, pi/4, pi/8, p1, p1, p1]
     zshockexpansion = fsolve(shock_expansion, I0, args=data)
     
+    print ('Solved the Shockwave Expansion fan interaction')
+
     Mc = zshockexpansion[0]
     Mcd = zshockexpansion[1]
     Md = zshockexpansion[2]
@@ -259,9 +265,14 @@ if __name__ == "__main__":
 
     Mbar = subsonic_portion(M0, r0, a0, g, M3, r3, a3, theta3)
     
+    print ('Solved the Subsonic Portion behind the Mach stem')
+    
     data = (M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, alpha, Mbar)
     I0 = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
     zMs = fsolve(geomentry, I0, args=data)
     
+    print ('Solved the Geometry to obtain the Mach stem estimate')
+    
     print (M1, M2, M3, beta1, beta2, beta3, theta1, theta2, theta3, alpha, betac, Mc, Mcd, Md)
+    print(zMs[13])
     pass
