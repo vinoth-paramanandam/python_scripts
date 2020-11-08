@@ -58,9 +58,7 @@ def threeshock(I0, *data):
     theta1 = theta
     M1 = F(M0, beta1, g)
     pr1 = G(M0, beta1, g)
-    ar1 = A(M0, beta1, g)
-    rr1 = H(M0, beta1, g)
-
+    
     M2 = I0[0]
     beta2 = I0[1]
     theta2 = I0[2]
@@ -141,7 +139,7 @@ def delta(d1, d2):
 
 def geomentry(I0, *data):
 
-    M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, alpha, Mbar = data
+    M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, betac, alpha, Mbar = data
     
     mu_b = arcsin(1.0/M1)
     mu_c = arcsin(1.0/Mc)
@@ -185,20 +183,16 @@ def geomentry(I0, *data):
 
     return f
 
-if __name__ == "__main__":
-    g = 1.4
-    M = 4.96
-    theta = 32.0*pi/180.0
-    R = 8314.4621/28.9647
-    H_ = 1.0
-    w = 0.77
-
+def calc_mach_stem(g, M, theta, R, H_, w):
+    
+    # Initial state
     M0 = M
     p0 = 101325.0
     t0 = 300.0
     r0 = p0/(R*t0)
     a0 = sqrt(g*R*t0)
 
+    # Behind the incident shock wave
     beta1 = calc_beta(M0, theta, g)[0]
     theta1 = theta
     M1 = F(M0, beta1, g)
@@ -213,7 +207,6 @@ if __name__ == "__main__":
     zthreeshock = fsolve(threeshock, I0, args=data)
 
     print ('Solved the three shock theory close to triple point')
-
     M2 = zthreeshock[0]
     M3 = zthreeshock[6]
 
@@ -267,12 +260,22 @@ if __name__ == "__main__":
     
     print ('Solved the Subsonic Portion behind the Mach stem')
     
-    data = (M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, alpha, Mbar)
+    data = (M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, betac, alpha, Mbar)
     I0 = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
     zMs = fsolve(geomentry, I0, args=data)
     
     print ('Solved the Geometry to obtain the Mach stem estimate')
-    
-    # print (M1, M2, M3, beta1, beta2, beta3, theta1, theta2, theta3, alpha, betac, Mc, Mcd, Md)
-    print(zMs[13])
+
+    return zMs[13]
+
+if __name__ == "__main__":
+    g = 1.4
+    M = 4.96
+    theta = 32.0*pi/180.0
+    R = 8314.4621/28.9647
+    H_ = 1.0
+    w = 0.77
+
+    Hm = calc_mach_stem(g, M, theta, R, H_, w)
+    print(M, theta*180.0/pi, w, Hm)
     pass
