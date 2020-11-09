@@ -286,14 +286,14 @@ if __name__ == "__main__":
     # H_ = 1.0
     # w = 0.77
     weg_length = pd.read_csv('wedlen_4m_jet.csv')
-    file  = open('wedge_LnB.csv', 'a')
+    file  = open('wedge_LnB_same_w.csv', 'a')
     zMs = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     zthreeshock = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
     zshockexpansion = np.ones(9)
     for i in range(weg_length['M'].shape[0]-1, -1, -1):
         theta = weg_length['theta'][i]
         H_ = 1.0
-        w = weg_length['w_h'][i]
+        w = 0.975 #weg_length['w_h'][i]
         M = weg_length['M'][i]
         
         # Initial state
