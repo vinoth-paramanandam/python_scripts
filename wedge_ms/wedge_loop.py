@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import tan, sin, cos, arcsin, arctan, arccos, pi, sqrt
 from scipy.optimize import fsolve
+import pandas as pd
 
 def cot(x):
     return 1.0/tan(x)
@@ -266,16 +267,45 @@ def calc_mach_stem(g, M, theta, R, H_, w):
     
     print ('Solved the Geometry to obtain the Mach stem estimate')
 
-    return zMs[13]
+    muB = arcsin(1.0/M1)
+    numeHtmax = w*sin(muB + theta1)*sin(beta1 - theta1)
+    denoHtmax = sin(muB + theta1 - beta1)
+
+    numeHtmin = w*sin(beta2 - theta1)*sin(beta1 - theta1)
+    denoHtmin = sin(beta1 + beta2 - theta1)
+
+    Htmax = zMs[13] + numeHtmax/denoHtmax
+    Htmin = zMs[13] + numeHtmin/denoHtmin
+    return zMs, Htmax, Htmin
 
 if __name__ == "__main__":
     g = 1.4
     M = 4.96
-    theta = 32.0*pi/180.0
+    # theta = 30.0*pi/180.0
     R = 8314.4621/28.9647
-    H_ = 1.0
-    w = 0.77
+    # H_ = 1.0
+    # w = 0.77
+    weg_length = pd.read_csv('wedlen_4m_jet.csv')
+    file  = open('wedge_LnB.csv', 'a')
+    zMs = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
-    Hm = calc_mach_stem(g, M, theta, R, H_, w)
-    print(M, theta*180.0/pi, w, Hm)
+    for i in range(weg_length['M'].shape[0]):
+        theta = weg_length['theta'][i]
+        H_ = 1.0
+        w = weg_length['w_h'][i]
+        M = weg_length['M'][i]
+        
+        # if i == 0:
+        #     Ival = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
+        # else:
+        #     Ival = zMs
+        Ival = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
+        zMs, Htmax, Htmin = calc_mach_stem(g, M, theta, R, H_, w)
+        Hm = zMs[13]
+
+        print(M, theta*180.0/pi, w, Hm)
+        thetaval = theta*180/pi
+        valLnBweged = np.append(np.append(thetaval, Hm), np.append(Htmax, Htmin))
+    
+        np.savetxt(file, [valLnBweged], delimiter=',', fmt='%f')
     pass
