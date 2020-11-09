@@ -288,17 +288,114 @@ if __name__ == "__main__":
     weg_length = pd.read_csv('wedlen_4m_jet.csv')
     file  = open('wedge_LnB.csv', 'a')
     zMs = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
+    zthreeshock = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
+    zshockexpansion = np.ones(9)
     for i in range(weg_length['M'].shape[0]-1, -1, -1):
         theta = weg_length['theta'][i]
         H_ = 1.0
         w = weg_length['w_h'][i]
         M = weg_length['M'][i]
-        if i == 0:
-            Ival = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
+        
+        # Initial state
+        M0 = M
+        p0 = 101325.0
+        t0 = 300.0
+        r0 = p0/(R*t0)
+        a0 = sqrt(g*R*t0)
+
+        # Behind the incident shock wave
+        beta1 = calc_beta(M0, theta, g)[0]
+        theta1 = theta
+        M1 = F(M0, beta1, g)
+        pr1 = G(M0, beta1, g)
+        ar1 = A(M0, beta1, g)
+        rr1 = H(M0, beta1, g)
+
+        print ('Solved the incident shock parameters')
+        data = (M0, p0, r0, a0, theta, g)
+
+        if i == 457:
+            I0 = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
         else:
-            Ival = zMs
-        zMs, Htmax, Htmin = calc_mach_stem(g, M, theta, R, H_, w, Ival)
+            I0 = zthreeshock
+        zthreeshock = fsolve(threeshock, I0, args=data)
+
+        print ('Solved the three shock theory close to triple point')
+        M2 = zthreeshock[0]
+        M3 = zthreeshock[6]
+
+        beta2 = zthreeshock[1]
+        beta3 = zthreeshock[7]
+    
+        theta2 = zthreeshock[2]
+        theta3 = zthreeshock[8]
+
+        ar2 = zthreeshock[3]
+        ar3 = zthreeshock[9]
+    
+        rr2 = zthreeshock[4]
+        rr3 = zthreeshock[10]
+
+        pr2 = zthreeshock[5]
+        pr3 = zthreeshock[11]
+
+        p1 = pr1*p0
+        p2 = pr2*p1
+        p3 = pr3*p0
+
+        r1 = rr1*r0
+        r2 = rr2*r1
+        r3 = rr3*r0
+
+        a1 = ar1*a0
+        a2 = ar2*a1
+        a3 = ar3*a0
+    
+        data = (M1, theta1, p1, M2, p2, theta3, g)
+        # I0 = [1.2*M2, 0.8*M2, M2, pi/8, pi/4, pi/8, 0.7*p1, 1.2*p1, p1]
+        if i == 457:
+            I0 = [M2, M2, M2, pi/8, pi/4, pi/8, p1, p1, p1]
+        else:
+            I0 = zshockexpansion
+
+        zshockexpansion = fsolve(shock_expansion, I0, args=data)
+    
+        print ('Solved the Shockwave Expansion fan interaction')
+
+        Mc = zshockexpansion[0]
+        Mcd = zshockexpansion[1]
+        Md = zshockexpansion[2]
+
+        alpha = zshockexpansion[3]
+        betac = zshockexpansion[4]
+        thetacd = zshockexpansion[5]
+    
+        pc = zshockexpansion[6]
+        pcd = zshockexpansion[7]
+        pd = zshockexpansion[8]
+
+        Mbar = subsonic_portion(M0, r0, a0, g, M3, r3, a3, theta3)
+    
+        print ('Solved the Subsonic Portion behind the Mach stem')
+    
+        data = (M1, M2, Mc, Mcd, Md, w, H_, theta1, theta3, beta1, beta2, betac, alpha, Mbar)
+        if i == 457:
+            I0 = [w, H_, w, H_, w, H_, w, H_, w, H_, w, H_, w, H_]
+        else:
+            I0 = zMs
+        zMs = fsolve(geomentry, I0, args=data)
+    
+        print ('Solved the Geometry to obtain the Mach stem estimate')
+
+        muB = arcsin(1.0/M1)
+        numeHtmax = w*sin(muB + theta1)*sin(beta1 - theta1)
+        denoHtmax = sin(muB + theta1 - beta1)
+
+        numeHtmin = w*sin(beta2 - theta1)*sin(beta1 - theta1)
+        denoHtmin = sin(beta1 + beta2 - theta1)
+
+        Htmax = zMs[13] + numeHtmax/denoHtmax
+        Htmin = zMs[13] + numeHtmin/denoHtmin
         Hm = zMs[13]
 
         print(M, theta*180.0/pi, w, Hm)
