@@ -285,11 +285,12 @@ if __name__ == "__main__":
     R = 8314.4621/28.9647
     # H_ = 1.0
     # w = 0.77
-    weg_length = pd.read_csv('wedlen_4m_jet.csv')
-    file  = open('wedge_LnB_same_w.csv', 'a')
+    weg_length = pd.read_csv('wedlen_4m_jet2p75.csv')
+    file  = open('wedge_LnB_same_w2p75.csv', 'a')
     zMs = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     zthreeshock = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
     zshockexpansion = np.ones(9)
+
     for i in range(weg_length['M'].shape[0]-1, -1, -1):
         theta = weg_length['theta'][i]
         H_ = 1.0
@@ -314,7 +315,7 @@ if __name__ == "__main__":
         print ('Solved the incident shock parameters')
         data = (M0, p0, r0, a0, theta, g)
 
-        if i == 457:
+        if i == weg_length['M'].shape[0]-1:
             I0 = [1.5, pi/4.0, pi/8.0, 1.2, 2, 3, 0.5, pi/2, pi/4, 2, 3, 5]
         else:
             I0 = zthreeshock
